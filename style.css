@@ -1,0 +1,307 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    background-color: #e8e8e8;
+    margin: 0;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: row;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.15);
+    width: 98%;
+    max-width: 1600px;
+    gap: 15px;
+}
+
+.main-panel {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+}
+
+.side-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Styles for New Physical Controls Area */
+.microscope-view-and-physical-controls {
+    display: flex;
+    flex-direction: row;
+    align-items: center; 
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.physical-controls-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* Increased gap for better spacing */
+    padding: 15px;
+    background-color: #dde1e6; /* Slightly different background */
+    border-radius: 8px;
+    border: 1px solid #c5c9ce;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.control-label {
+    font-size: 0.85em;
+    font-weight: bold;
+    color: #454d54;
+    margin-bottom: -12px; 
+}
+
+.focus-wheel {
+    background-color: #5a6268;
+    border: 3px solid #343a40;
+    border-radius: 50%;
+    cursor: ns-resize;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 3px 5px rgba(0,0,0,0.3);
+    user-select: none;
+    transition: transform 0.1s ease-out; /* For subtle active feedback */
+}
+.focus-wheel:active {
+    transform: scale(0.98); /* Slightly shrink when active */
+}
+
+.focus-wheel.coarse-wheel {
+    width: 80px;
+    height: 80px;
+}
+.focus-wheel.fine-wheel {
+    width: 55px;
+    height: 55px;
+    background-color: #6c757d;
+}
+
+.focus-wheel::before { /* Inner detail */
+    content: '';
+    width: 50%;
+    height: 50%;
+    background-color: #495057;
+    border-radius: 50%;
+    border: 2px solid #23272b;
+}
+.fine-wheel::before {
+    background-color: #5a6268;
+}
+
+.illumination-knob {
+    width: 60px;
+    height: 60px;
+    background-color: #777; /* Or a color like #f0ad4e for an "on" feel */
+    border: 2px solid #555;
+    border-radius: 50%;
+    cursor: ns-resize;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.4), 0 2px 3px rgba(0,0,0,0.2);
+    user-select: none;
+    transition: transform 0.1s ease-out;
+}
+.illumination-knob:active {
+    transform: scale(0.98);
+}
+
+.knob-indicator {
+    width: 6px;
+    height: 12px;
+    background-color: #f0f0f0; /* Brighter indicator */
+    border-radius: 3px 3px 0 0; /* Shaped more like a pointer */
+    margin-top: 5px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    transform-origin: bottom center; /* Rotate around its base */
+}
+
+.optics-readout {
+    font-size: 0.9em;
+    color: #212529;
+    margin: 3px 0;
+    text-align: center;
+    background-color: #f0f0f0;
+    padding: 2px 5px;
+    border-radius: 3px;
+    min-width: 100px; /* Give some width to prevent jumping */
+}
+
+
+.viewfinder-area {
+    margin-bottom: 15px; /* If it was moved out from under physical controls */
+    display: flex;
+    justify-content: center;
+    flex-grow: 1; /* Allow viewfinder to take available space */
+    min-width: 420px; /* Ensure it has some minimum width */
+}
+
+.viewfinder {
+    width: 500px; 
+    height: 500px;
+    border: 10px solid #333;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+    background-color: #111; 
+    cursor: grab;
+    flex-shrink: 0; /* Prevent it from shrinking too much */
+}
+
+#slideImage {
+    display: block; 
+    width: 100%; 
+    height: 100%;
+    object-fit: cover; 
+    transform-origin: center center; 
+    transition: transform 0.2s ease-out, filter 0.2s ease-out;
+    position: relative; 
+    left: 0;
+    top: 0;
+}
+
+#annotationCanvas, #scanningGuideCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; 
+}
+#scanningGuideCanvas {
+    opacity: 0.3; 
+}
+
+
+.controls-panel {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    width: 100%;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.control-group {
+    background-color: #fff;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    min-width: 180px;
+    flex: 1;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.control-group h3 {
+    margin-top: 0;
+    font-size: 1em; 
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+    margin-bottom: 8px;
+}
+.control-group label { font-size: 0.85em; margin-bottom: 2px; display: block;}
+.control-group input[type="range"],
+.control-group input[type="file"],
+.control-group select {
+    width: calc(100% - 10px);
+    margin-bottom: 8px;
+    padding: 5px;
+    font-size: 0.85em;
+}
+.control-group button {
+    background-color: #007bff; 
+    color: white;
+    border: none;
+    padding: 7px 10px;
+    font-size: 0.85em;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 3px 2px;
+    transition: background-color 0.2s;
+}
+
+.control-group button:hover {
+    background-color: #0056b3;
+}
+#addAnnotationMode.active {
+    background-color: #dc3545; 
+}
+.objective-btn.active { 
+    background-color: #28a745; 
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+}
+
+
+.tutorial-panel, .info-panel, .save-load-panel {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.tutorial-panel h3, .info-panel h3, .save-load-panel h3 {
+    margin-top: 0; font-size: 1.1em; border-bottom: 1px solid #eee; padding-bottom: 5px;
+}
+
+#tutorialStepDisplay {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f0f8ff; 
+    border-radius: 5px;
+    font-size: 0.9em;
+}
+#tutorialStepDisplay button { margin-top: 8px; margin-right: 5px; }
+.tutorial-highlight { 
+    outline: 3px solid #fd7e14 !important; 
+    box-shadow: 0 0 15px #fd7e14 !important;
+    transition: outline 0.3s, box-shadow 0.3s;
+    border-radius: 50%; /* Makes highlight circular for knobs/wheels */
+}
+
+
+.instructions-text {
+    font-size: 0.8em;
+    color: #555;
+    margin-top: 5px;
+}
+
+#quizArea .quiz-item {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 5px;
+}
+#quizArea .quiz-item p { margin: 0 0 5px 0; }
+#quizArea input[type="text"] { width: calc(70% - 5px); margin-right: 5px; padding: 5px; }
+#quizArea button { padding: 5px 8px; }
+#quizArea .feedback { font-size: 0.85em; margin-left: 5px; }
+#quizArea .feedback.correct { color: green; }
+#quizArea .feedback.incorrect { color: red; }
+
+.viewfinder::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    /* Use CSS variables for dynamic control from JS */
+    box-shadow: 0 0 0 var(--vf-after-shadow-size, 0px) rgba(0,0,0, var(--vf-after-shadow-opacity, 0));
+    pointer-events: none;
+    transition: box-shadow 0.3s ease-out;
+}
