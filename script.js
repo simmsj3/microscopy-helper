@@ -365,42 +365,106 @@ document.addEventListener('DOMContentLoaded', () => {
         document.removeEventListener('mouseup', stopControlDrag);
     }
 
-    // --- Image Upload, Stage Drag, Objectives --- (Largely unchanged, ensure they use microscopeState)
-    function handleImageUpload(event) { /* ... same as before ... */ 
-        console.log("handleImageUpload triggered.");
-        const file = event.target.files[0];
+function handleImageUpload(event) {
+    console.log("handleImageUpload triggered.");
+    const file = event.target.files[0];
+    const currentImageUploadInput = event.target; // Keep a reference to the input element that triggered the event
 
-        if (file) {
-            console.log("File selected:", file.name, "Type:", file.type, "Size:", file.size);
+    if (file) {
+        console.log("File selected:", file.name, "Type:", file.type, "Size:", file.size);
 
-            if (!file.type.startsWith('image/')) {
-                console.error("Selected file is not an image type:", file.type);
-                instructionText.textContent = "Error: Selected file is not a recognized image format. Please choose a PNG or JPEG.";
-                imageUpload.value = ""; 
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onloadstart = () => { instructionText.textContent = "Loading image..."; };
-            reader.onprogress = (pEvent) => { /* ... */ };
-            reader.onload = (e) => { 
-                slideImage.src = e.target.result; 
-                slideImage.onload = () => {
-                    if (slideImage.naturalWidth === 0 || slideImage.naturalHeight === 0) { /* error handling */ return; }
-                    microscopeState.currentScenarioId = null;
-                    microscopeState.uploadedImageName = file.name;
-                    microscopeState.annotations = [];
-                    annotationIdCounter = 0;
-                    resetMicroscopeViewToDefaults(); 
-                    instructionText.textContent = "Custom image loaded.";
-                };
-                slideImage.onerror = () => { instructionText.textContent = "Error: Could not display the selected image."; };
-            };
-            reader.onerror = () => { instructionText.textContent = "Error: Could not read the selected file."; imageUpload.value = ""; };
-            reader.readAsDataURL(file); 
-            scenarioSelect.value = "";
+        if (!file.type.startsWith('image/')) {
+            console.error("Selected file is not an image type:", file.type);
+            instructionText.textContent = "Error: Selected file is not a recognized image format. Please choose a PNG, JPEG, or GIF.";
+            currentImageUploadInput.value = ""; // Clear the input so the user can try again or select the same file
+            return;
         }
+
+        const reader = new FileReader();
+
+        reader.onloadstart = () => {
+            instructionText.textContent = "Loading image...";
+            // You could also disable parts of the UI here if needed
+        };
+
+        reader.onprogress = (pEvent) => {
+            // Optional: You could add a progress indicator if dealing with very large local files
+            if (pEvent.lengthComputable) {
+                const percentLoaded = Math.round((pEvent.loaded / pEvent.total) * 100);
+                // console.log(`File reading progress: ${percentLoaded}%`);
+            }
+        };
+
+        reader.onload = (e_reader) => { // Renamed to avoid confusion with slideImage.onload event
+            console.log("FileReader.onload: File read into memory. Preparing to set slideImage.src.");
+
+            // IMPORTANT: Clear any existing onload/onerror handlers on slideImage
+            // This prevents old handlers (e.g., from initial load or a previous scenario) from interfering.
+            slideImage.onload = null;
+            slideImage.onerror = null;
+
+            // Set up the NEW onload handler for slideImage *before* setting its src.
+            slideImage.onload = () => {
+                console.log("slideImage.onload: New image has been loaded by the browser. Natural Dims:", slideImage.naturalWidth, "x", slideImage.naturalHeight);
+
+                // Check if the image loaded correctly and has dimensions
+                if (slideImage.naturalWidth === 0 || slideImage.naturalHeight === 0) {
+                    console.error("Uploaded image loaded but has zero dimensions. File:", file.name, "Src (start):", slideImage.src.substring(0, 100) + "...");
+                    instructionText.textContent = `Error: Image "${file.name}" loaded but appears to be invalid or has zero dimensions.`;
+                    // Don't clear input here yet, let onerror handle it if src was truly bad,
+                    // or if it's a valid image that browser reports as 0x0, it's a deeper issue.
+                    // However, we can't proceed with a 0-dimension image.
+                    currentImageUploadInput.value = ""; // Clear input as this attempt failed.
+                    return;
+                }
+
+                // Image is loaded and valid, now update the microscope state
+                microscopeState.currentScenarioId = null; // Clear any active scenario
+                microscopeState.uploadedImageName = file.name;
+                microscopeState.annotations = []; // Clear annotations for the new image
+                annotationIdCounter = 0; // Reset annotation counter
+
+                // Reset the view to defaults for the new image.
+                // This function should internally call updateFullView().
+                resetMicroscopeViewToDefaults();
+
+                instructionText.textContent = `Custom image "${file.name}" loaded successfully.`;
+                console.log("Custom image fully processed, state updated, and view reset.");
+
+                // CRITICAL for "upload twice" / "defined name" issue:
+                // Clear the file input's value. This allows the 'change' event
+                // to fire again if the user selects the exact same file.
+                currentImageUploadInput.value = "";
+                scenarioSelect.value = ""; // Reset scenario dropdown as we are on a custom image
+            };
+
+            // Set up the NEW onerror handler for slideImage
+            slideImage.onerror = () => {
+                console.error("slideImage.onerror: Error displaying the image from Data URL. File:", file.name);
+                instructionText.textContent = "Error: Could not display the selected image. It might be corrupted or an unsupported format.";
+                currentImageUploadInput.value = ""; // Clear the input on error too
+            };
+
+            // Now, set the slideImage.src. The handlers above are now in place.
+            console.log("Setting slideImage.src with Data URL from FileReader.");
+            slideImage.src = e_reader.target.result;
+        };
+
+        reader.onerror = () => {
+            console.error("FileReader.onerror: Could not read the selected file. File:", file.name);
+            instructionText.textContent = "Error: Could not read the selected file.";
+            currentImageUploadInput.value = ""; // Clear the input
+        };
+
+        // Start reading the file as a Data URL
+        reader.readAsDataURL(file);
+
+    } else {
+        console.log("handleImageUpload: No file selected (e.g., user cancelled the dialog).");
+        // No need to clear input here, as 'change' won't fire again unless a new selection is made.
     }
+}
+    
     function handleObjectiveChange(event) { /* ... same as before ... */ 
         microscopeState.zoom = parseFloat(event.target.dataset.zoom);
         // microscopeState.coarseFocus = microscopeState.zoom * 2; // This behavior might change with draggable coarse focus
